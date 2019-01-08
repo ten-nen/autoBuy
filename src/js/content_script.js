@@ -22,7 +22,7 @@ function showSelect() {
 }
 
 var intervalId;
-var isRunning;
+
 function startBuy() {
     chrome.storage.local.get(['AB_Start'], function (r) {
         console.log('auto_bug');
@@ -31,20 +31,7 @@ function startBuy() {
         }
         else {
             $(function () {
-                intervalId = setInterval(function () {
-                    if (isRunning == true) {
-                        return;
-                    }
-                    isRunning = true;
-                    chrome.storage.local.get(['AB_Enabled'], function (r) {
-                        if (r.AB_Enabled == 1) {
-                            autoBuy();
-                        } else {
-                            stopBuy();
-                            showMsg('已停止..');
-                        }
-                    })
-                }, 100);
+                autoBuy();
             });
         }
     });
@@ -58,7 +45,6 @@ function showMsg(msg) {
 }
 
 function stopBuy() {
-    clearInterval(intervalId);
     chrome.storage.local.set({ AB_Start: 0 }, function () {
     });
 }
@@ -88,7 +74,7 @@ function btnClick(getBtn, time, checkDisabled) {
     var btn = getBtn();
     if (btn) {
         btn.click();
-        setTimeout(function () {
+        setInterval(function () {
             btn.click();
         }, 100);
         return;
@@ -100,12 +86,7 @@ function btnClick(getBtn, time, checkDisabled) {
 }
 
 function autoBuy() {
-    var startTime = 0, url = window.location.href;
-    startTime += 100;
-    if (startTime > 500)
-        window.location.reload();
-
-    var btn, disableBtn, result = '';
+    var url = window.location.href;
     if (document.title.indexOf('security') != -1 || document.title.indexOf('受限') != -1) {
         stopBuy();
         showMsg('受限了，休息一会');
@@ -113,8 +94,11 @@ function autoBuy() {
     }
     if (url.indexOf('buy.tmall.com') != -1 || url.indexOf('buy.tmall.hk') != -1 || url.indexOf('buy.taobao.com') != -1 || url.indexOf('buy.m.tmall.com') != -1 || url.indexOf('h5.m.taobao.com/cart/order.html') != -1) {
         //提交订单页面
-        btn = $('.go-btn')[0] || $('#submitOrder_1 span[title="提交订单"]')[0];  //pc端提交订单button || 手机端提交订单button
         showMsg('提交订单中..');
+        btnClick(function () {
+            var btn = $('.go-btn')[0] || $('#submitOrder_1 span[title="提交订单"]')[0];  //pc端提交订单button || 手机端提交订单button
+            return btn;
+        }, 0, false);
     }
     else if (url.indexOf('.alipay.com') != -1) {
         //支付页面
@@ -133,22 +117,11 @@ function autoBuy() {
     }
     else {
         //购买页面
-        disableBtn = $('.buy.btn-disabled ')[0] || $('.buy.disabled')[0]; //下架按钮
-        if (disableBtn) {
-            showMsg('下架中，即将刷新页面..');
-            window.location.reload();
-            return;
-        }
-        btn = $('.J_LinkBuy')[0] || $('#J_LinkBuy')[0] || $('.buy .btn-title')[0] || $('.trade .buy ')[0];  //pc端淘宝购买button || pc端天猫购买button || 手机端淘宝购买button || 手机端天猫购买button
         showMsg('自动购买中..');
-        
+        btnClick(function () {
+            var btn = btn = $('.J_LinkBuy')[0] || $('#J_LinkBuy')[0] || $('.buy .btn-title')[0] || $('.trade .buy ')[0];  //pc端淘宝购买button || pc端天猫购买button || 手机端淘宝购买button || 手机端天猫购买button
+            return btn;
+        }, 0, true);
+
     }
-    if (btn) {
-        stopBuy();
-        btn.click();
-        setTimeout(function () {
-            btn.click();
-        }, 100);
-    }
-    isRunning = false;
 }
