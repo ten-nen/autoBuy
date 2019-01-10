@@ -73,10 +73,10 @@ function btnClick(getBtn, time, checkDisabled) {
 
     var btn = getBtn();
     if (btn) {
-        btn.click();
+        //btn.click();
         setInterval(function () {
             btn.click();
-        }, 100);
+        }, 300);
         return;
     }
     sleep(100).then(() => {
